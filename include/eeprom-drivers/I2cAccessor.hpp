@@ -1,7 +1,7 @@
 #pragma once
 
 #include "FreeRTOS.h"
-#include "i2c-drivers/bus_accessor.hpp"
+#include "i2c-drivers/BusAccessorBase.hpp"
 #include "semphr.h"
 
 #include "hal_header.h"

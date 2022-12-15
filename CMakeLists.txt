@@ -5,7 +5,7 @@ project(eeprom-drivers LANGUAGES CXX C ASM)
 
 
 add_library(${PROJECT_NAME} STATIC
-        src/rtos_accessor.cpp)
+        src/I2cAccessor.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC
         include
         )

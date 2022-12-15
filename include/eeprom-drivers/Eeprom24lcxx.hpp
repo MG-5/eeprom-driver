@@ -2,17 +2,17 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "i2c-drivers/bus_accessor.hpp"
+#include "i2c-drivers/BusAccessorBase.hpp"
 #include <array>
-#include <limits>
 #include <core/SafeAssert.h>
+#include <limits>
 
 template <size_t KiB, size_t BytesPerPage>
-class Eeprom24LCXX
+class Eeprom24lcxx
 {
 public:
     using Address_t = size_t;
-    Eeprom24LCXX(i2c::IBusAccessor &accessor, i2c::DeviceAddress chipSelectBits)
+    Eeprom24lcxx(i2c::IBusAccessor &accessor, i2c::DeviceAddress chipSelectBits)
         : accessor{accessor}, deviceAddress{static_cast<i2c::DeviceAddress>(
                                   BaseAddress | (chipSelectBits & ChipSelectMask))}
     {
@@ -20,11 +20,11 @@ public:
                       "Choose Address_t to be unsigned!");
 
         static_assert(
-            static_cast<uint64_t>(getSizeInBytes()-1) <=
+            static_cast<uint64_t>(getSizeInBytes() - 1) <=
                 static_cast<uint64_t>(std::numeric_limits<Address_t>::max()),
             "Address_t is not able to cover complete size of eeprom. Choose a bigger type");
 
-        static_assert(static_cast<uint64_t>(getSizeInBytes()-1) <=
+        static_assert(static_cast<uint64_t>(getSizeInBytes() - 1) <=
                           static_cast<uint64_t>(std::numeric_limits<uint16_t>::max()),
                       "read() and write() are still statically written for 2-byte addresses. "
                       "Revise implementations");
@@ -38,7 +38,7 @@ public:
     virtual void read(Address_t address, uint8_t *buffer, Address_t length)
     {
         SafeAssert(length != 0);
-        SafeAssert(length - 1<= std::numeric_limits<uint16_t>::max());
+        SafeAssert(length - 1 <= std::numeric_limits<uint16_t>::max());
         SafeAssert(!doesAddressExceedLimit(address + length - 1));
 
         auto memoryAddressBuffer = getAddressBuffer(static_cast<uint16_t>(address));
@@ -130,4 +130,4 @@ protected:
     static constexpr auto ChipSelectMask = 0b111;
 };
 
-using Eeprom24LC64 = Eeprom24LCXX<64, 32>;
+using Eeprom24LC64 = Eeprom24lcxx<64, 32>;
