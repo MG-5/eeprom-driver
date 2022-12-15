@@ -1,26 +1,26 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
-namespace i2c
-{
-using DeviceAddress = uint16_t;
-
-enum TransferFlags : int
-{
-    NoFlags = 0,
-    FirstFrame = 1 << 0,
-    LastFrame = 1 << 1
-};
-
-class IBusAccessor
+template <class RegisterAddress>
+class BusAccessorBase
 {
 public:
+    using DeviceAddress = uint16_t;
+
     virtual void beginTransaction(DeviceAddress address) = 0;
     virtual void endTransaction() = 0;
 
-    virtual bool read(uint8_t *buffer, uint16_t length, int flags) = 0;
-    virtual bool write(const uint8_t *data, uint16_t length, int flags) = 0;
+    virtual bool read(uint8_t *buffer, size_t length) = 0;
+    virtual bool readFromRegister(RegisterAddress registerAddress, uint8_t *buffer,
+                                  size_t length) = 0;
+    virtual bool readByteFromRegister(RegisterAddress registerAddress, uint8_t &byte) = 0;
+    virtual bool readWordFromRegister(RegisterAddress registerAddress, uint16_t &word) = 0;
+
+    virtual bool write(const uint8_t *data, size_t length) = 0;
+    virtual bool writeToRegister(RegisterAddress registerAddress, const uint8_t *data,
+                                 size_t length) = 0;
+    virtual bool writeByteToRegister(RegisterAddress registerAddress, uint8_t byte) = 0;
+    virtual bool writeWordToRegister(RegisterAddress registerAddress, uint16_t word) = 0;
 };
-} // namespace i2c
