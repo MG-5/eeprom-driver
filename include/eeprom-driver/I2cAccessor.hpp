@@ -92,7 +92,7 @@ public:
         swapBytes(registerAddress);
         HAL_I2C_Master_Seq_Transmit_IT(i2cHandle, currentAddress << 1,
                                        reinterpret_cast<uint8_t *>(&registerAddress),
-                                       sizeof(RegisterAddress), I2C_FIRST_FRAME);
+                                       sizeof(RegisterAddress), I2C_FIRST_AND_NEXT_FRAME);
 
         auto semphrSuccess = xSemaphoreTake(binary, Timeout);
         if (semphrSuccess == pdFALSE || errorCondition)
