@@ -3,7 +3,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-#include "eeprom-drivers/BusAccessorBase.hpp"
+#include "eeprom-driver/BusAccessorBase.hpp"
 #include "hal_header.h"
 
 template <class RegisterAddress>

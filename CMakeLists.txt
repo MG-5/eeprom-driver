@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0048 NEW)
 
-project(eeprom-drivers LANGUAGES CXX C ASM)
+project(eeprom-driver LANGUAGES CXX C ASM)
 
 add_library(${PROJECT_NAME} INTERFACE)
 

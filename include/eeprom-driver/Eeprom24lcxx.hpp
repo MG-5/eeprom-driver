@@ -2,8 +2,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "eeprom-drivers/BusAccessorBase.hpp"
-#include "eeprom-drivers/EepromBase.hpp"
+#include "eeprom-driver/BusAccessorBase.hpp"
+#include "eeprom-driver/EepromBase.hpp"
 
 #include <array>
 #include <core/SafeAssert.h>
