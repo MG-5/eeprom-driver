@@ -2,8 +2,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "eeprom-driver/BusAccessorBase.hpp"
 #include "eeprom-driver/EepromBase.hpp"
+#include "eeprom-driver/I2cAccessor.hpp"
 
 #include <array>
 #include <core/SafeAssert.h>
@@ -15,10 +15,8 @@ template <size_t KiB, size_t BytesPerPage>
 class Eeprom24lcxx : public EepromBase<KiB, AddressSize>
 {
 public:
-    using DeviceAddress = typename BusAccessorBase<AddressSize>::DeviceAddress;
-
-    Eeprom24lcxx(BusAccessorBase<AddressSize> &accessor, DeviceAddress chipSelectBits)
-        : accessor{accessor}, deviceAddress{static_cast<DeviceAddress>(
+    Eeprom24lcxx(I2cAccessor &accessor, I2cAccessor::DeviceAddress chipSelectBits)
+        : accessor{accessor}, deviceAddress{static_cast<I2cAccessor::DeviceAddress>(
                                   BaseAddress | (chipSelectBits & ChipSelectMask))} {
 
                               };
@@ -88,11 +86,11 @@ protected:
         }
     }
 
-    BusAccessorBase<AddressSize> &accessor;
-    DeviceAddress deviceAddress;
-
     static constexpr uint8_t BaseAddress = 0b1010 << 3;
     static constexpr uint8_t ChipSelectMask = 0b111;
+
+    I2cAccessor &accessor;
+    I2cAccessor::DeviceAddress deviceAddress;
 };
 
 using Eeprom24LC64 = Eeprom24lcxx<64, 32>;

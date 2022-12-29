@@ -3,14 +3,12 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-#include "eeprom-driver/BusAccessorBase.hpp"
 #include "hal_header.h"
 
-template <class RegisterAddress>
-class I2cAccessor : public BusAccessorBase<RegisterAddress>
+class I2cAccessor
 {
 public:
-    using DeviceAddress = typename BusAccessorBase<RegisterAddress>::DeviceAddress;
+    using DeviceAddress = uint8_t;
 
     explicit I2cAccessor(I2C_HandleTypeDef *hi2c) : i2cHandle{hi2c}
     {
@@ -23,18 +21,18 @@ public:
         return i2cHandle == other.i2cHandle;
     }
 
-    void beginTransaction(DeviceAddress address) override
+    void beginTransaction(DeviceAddress address)
     {
         xSemaphoreTake(mutex, portMAX_DELAY);
         currentAddress = address;
     }
 
-    void endTransaction() override
+    void endTransaction()
     {
         xSemaphoreGive(mutex);
     }
 
-    bool read(uint8_t *buffer, size_t length) override
+    bool read(uint8_t *buffer, size_t length)
     {
         errorCondition = false;
         HAL_I2C_Master_Receive_IT(i2cHandle, currentAddress << 1, buffer, length);
@@ -43,7 +41,8 @@ public:
         return !(semphrSuccess == pdFALSE || errorCondition);
     }
 
-    bool readFromRegister(RegisterAddress registerAddress, uint8_t *buffer, size_t length) override
+    template <typename RegisterAddress>
+    bool readFromRegister(RegisterAddress registerAddress, uint8_t *buffer, size_t length)
     {
         errorCondition = false;
         swapBytes(registerAddress);
@@ -62,19 +61,21 @@ public:
         return !(semphrSuccess == pdFALSE || errorCondition);
     }
 
-    bool readByteFromRegister(RegisterAddress registerAddress, uint8_t &byte) override
+    template <typename RegisterAddress>
+    bool readByteFromRegister(RegisterAddress registerAddress, uint8_t &byte)
     {
         return readFromRegister(registerAddress, &byte, 1);
     }
 
-    bool readWordFromRegister(RegisterAddress registerAddress, uint16_t &word) override
+    template <typename RegisterAddress>
+    bool readWordFromRegister(RegisterAddress registerAddress, uint16_t &word)
     {
         bool returnValue = readFromRegister(registerAddress, reinterpret_cast<uint8_t *>(&word), 2);
         swapBytes(word);
         return returnValue;
     }
 
-    bool write(const uint8_t *data, size_t length) override
+    bool write(const uint8_t *data, size_t length)
     {
         errorCondition = false;
         HAL_I2C_Master_Transmit_IT(i2cHandle, currentAddress << 1, const_cast<uint8_t *>(data),
@@ -84,8 +85,8 @@ public:
         return (semphrSuccess == pdFALSE || errorCondition);
     }
 
-    bool writeToRegister(RegisterAddress registerAddress, const uint8_t *data,
-                         size_t length) override
+    template <typename RegisterAddress>
+    bool writeToRegister(RegisterAddress registerAddress, const uint8_t *data, size_t length)
     {
         errorCondition = false;
         swapBytes(registerAddress);
@@ -104,27 +105,33 @@ public:
         return !(semphrSuccess == pdFALSE || errorCondition);
     }
 
-    bool writeByteToRegister(RegisterAddress registerAddress, const uint8_t byte) override
+    template <typename RegisterAddress>
+    bool writeByteToRegister(RegisterAddress registerAddress, const uint8_t byte)
     {
         return writeToRegister(registerAddress, &byte, 1);
     }
 
-    bool writeWordToRegister(RegisterAddress registerAddress, uint16_t word) override
+    template <typename RegisterAddress>
+    bool writeWordToRegister(RegisterAddress registerAddress, uint16_t word)
     {
         swapBytes(word);
         return writeToRegister(registerAddress, reinterpret_cast<const uint8_t *>(&word), 2);
     }
 
-    void signalTransferCompleteFromIsr(BaseType_t *higherPrioTaskWoken)
+    void signalTransferCompleteFromIsr()
     {
+        BaseType_t higherPrioTaskWoken = pdFALSE;
         errorCondition = false;
-        xSemaphoreGiveFromISR(binary, higherPrioTaskWoken);
+        xSemaphoreGiveFromISR(binary, &higherPrioTaskWoken);
+        portYIELD_FROM_ISR(higherPrioTaskWoken);
     }
 
-    void signalErrorFromIsr(BaseType_t *higherPrioTaskWoken)
+    void signalErrorFromIsr()
     {
+        BaseType_t higherPrioTaskWoken = pdFALSE;
         errorCondition = true;
-        xSemaphoreGiveFromISR(binary, higherPrioTaskWoken);
+        xSemaphoreGiveFromISR(binary, &higherPrioTaskWoken);
+        portYIELD_FROM_ISR(higherPrioTaskWoken);
     }
 
     template <class T>
@@ -144,8 +151,8 @@ public:
 
 private:
     I2C_HandleTypeDef *i2cHandle;
-    DeviceAddress currentAddress;
+    DeviceAddress currentAddress = 0;
     SemaphoreHandle_t mutex = nullptr;
     SemaphoreHandle_t binary = nullptr;
-    bool errorCondition;
+    bool errorCondition = false;
 };

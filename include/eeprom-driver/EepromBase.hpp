@@ -1,6 +1,5 @@
 #pragma once
 
-#include "eeprom-driver/BusAccessorBase.hpp"
 #include <cstddef>
 #include <limits>
 
