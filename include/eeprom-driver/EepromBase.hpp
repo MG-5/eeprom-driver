@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 
 template <size_t KiB, class AddressSize>
