@@ -82,7 +82,7 @@ public:
                                    length);
 
         auto semphrSuccess = xSemaphoreTake(binary, Timeout);
-        return (semphrSuccess == pdFALSE || errorCondition);
+        return !(semphrSuccess == pdFALSE || errorCondition);
     }
 
     template <typename RegisterAddress>
