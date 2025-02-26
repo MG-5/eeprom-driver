@@ -1,9 +1,8 @@
 #pragma once
 
 #include "FreeRTOS.h"
+#include "i2c.h"
 #include "semphr.h"
-
-#include "hal_header.h"
 
 class I2cAccessor
 {

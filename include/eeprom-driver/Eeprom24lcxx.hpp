@@ -6,7 +6,6 @@
 #include "eeprom-driver/I2cAccessor.hpp"
 
 #include <array>
-#include <core/SafeAssert.h>
 #include <limits>
 
 using AddressSize = uint16_t;
@@ -19,13 +18,13 @@ public:
         : accessor{accessor}, deviceAddress{static_cast<I2cAccessor::DeviceAddress>(
                                   BaseAddress | (chipSelectBits & ChipSelectMask))} {
 
-                              };
+          };
 
     void read(AddressSize address, uint8_t *buffer, size_t length) override
     {
-        SafeAssert(length != 0);
-        SafeAssert(length - 1 <= std::numeric_limits<uint16_t>::max());
-        SafeAssert(!this->doesAddressExceedLimit(address + length - 1));
+        configASSERT(length != 0);
+        configASSERT(length - 1 <= std::numeric_limits<uint16_t>::max());
+        configASSERT(!this->doesAddressExceedLimit(address + length - 1));
 
         accessor.beginTransaction(deviceAddress);
         accessor.readFromRegister(address, buffer, length);
@@ -34,9 +33,9 @@ public:
 
     void write(AddressSize address, const uint8_t *data, size_t length) override
     {
-        SafeAssert(length != 0);
-        SafeAssert(length - 1 <= std::numeric_limits<uint16_t>::max());
-        SafeAssert(!this->doesAddressExceedLimit(address + length - 1));
+        configASSERT(length != 0);
+        configASSERT(length - 1 <= std::numeric_limits<uint16_t>::max());
+        configASSERT(!this->doesAddressExceedLimit(address + length - 1));
 
         const auto firstPage = address / BytesPerPage;
         const auto lastPage = (address + length) / BytesPerPage;
